@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/new/mar">
+        <file>glyphicons-281-settings.png</file>
+        <file>glyphicons-352-book-open.png</file>
+        <file>glyphicons-389-exit.png</file>
+        <file>glyphicons-196-info-sign.png</file>
+    </qresource>
+</RCC>
