@@ -28,9 +28,16 @@ private slots:
 
     void on_aTextProperties_triggered();
 
+    void writeSettings();
+    void readSettings();
+    void setSettings();
+
+
 private:
     Ui::MainWindow *ui;
-//    void openFB(QFile *fb);
-
+//
+    int fontSize = 20;
+    QColor fontColor;
+    QColor backgroundColor;
 };
 #endif // MAINWINDOW_H

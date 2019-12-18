@@ -14,6 +14,8 @@ class PropertiesWindow : public QDialog
 public:
     explicit PropertiesWindow(QWidget *parent = nullptr);
     ~PropertiesWindow();
+    bool setValues(int fontSize, QColor fontColor, QColor backgroundColor);
+    bool getValues(int* fontSize, QColor* fontColor, QColor* backgroundColor);
 
 private slots:
     void on_pushButton_clicked();

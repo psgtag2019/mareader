@@ -18,9 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     ui->textBrowser->clear();
-    ui->textBrowser->setFontPointSize(20);
-
-//    ui->textBrowser->setStyleSheet("QTextBrowser { background-color: rgb(109, 255, 99); color: white;}");
+    readSettings();
+    setSettings();
 
     //ui->textBrowser->setTextBackgroundColor(Qt::yellow);
     //ui->textBrowser->setTextColor(0xfffff);
@@ -34,6 +33,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_aExit_triggered()
 {
+    writeSettings();
     QApplication::quit();
 }
 
@@ -87,9 +87,44 @@ void MainWindow::on_aAbout_triggered()
 void MainWindow::on_aTextProperties_triggered()
 {
     PropertiesWindow* pw = new PropertiesWindow(this);
+    pw->setValues(fontSize, fontColor, backgroundColor);
     pw->setModal(true);
     if (pw->exec() == QDialog::Accepted){
-
+        pw->getValues(&fontSize, &fontColor, &backgroundColor);
     }
     delete pw;
+    setSettings();
+    ui->textBrowser->show();
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings settings("PSG_tag", "MaReader");
+
+    settings.beginGroup("MainWindow");
+    settings.setValue("fontsize", fontSize);
+    settings.setValue("fontcolor", fontColor);
+    settings.setValue("backgroundcolor", backgroundColor);
+
+    settings.endGroup();
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings("PSG_tag", "MaReader");
+
+    settings.beginGroup("MainWindow");
+    fontSize = settings.value("fontsize", 20).toInt();
+    fontColor = settings.value("fontcolor", QColor(Qt::black)).value<QColor>();
+    backgroundColor = settings.value("backgroundcolor", QColor(Qt::white)).value<QColor>();
+
+    settings.endGroup();
+}
+
+void MainWindow::setSettings()
+{
+    ui->textBrowser->setFontPointSize(fontSize);
+    QString s = "QTextBrowser { background-color: " + backgroundColor.name() +
+                "; color: "+ fontColor.name() + ";}";
+    ui->textBrowser->setStyleSheet(s);
 }
