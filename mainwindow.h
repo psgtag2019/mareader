@@ -19,6 +19,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void init(QApplication* a);
+
+    QString myOrganization;
+    QString myApplicationName;
+
 private slots:
     void on_aExit_triggered();
 
@@ -28,9 +33,7 @@ private slots:
 
     void on_aTextProperties_triggered();
 
-    void writeSettings();
-    void readSettings();
-    void setSettings();
+
 
 
 private:
@@ -39,5 +42,9 @@ private:
     int fontSize = 20;
     QColor fontColor;
     QColor backgroundColor;
+
+    void writeSettings();
+    void readSettings();
+    void setSettings();
 };
 #endif // MAINWINDOW_H

@@ -18,8 +18,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     ui->textBrowser->clear();
-    readSettings();
-    setSettings();
 
     //ui->textBrowser->setTextBackgroundColor(Qt::yellow);
     //ui->textBrowser->setTextColor(0xfffff);
@@ -97,26 +95,42 @@ void MainWindow::on_aTextProperties_triggered()
     ui->textBrowser->show();
 }
 
+void MainWindow::init(QApplication* a)
+{
+    myOrganization = a->organizationName();
+    myApplicationName = a->applicationName();
+    readSettings();
+    setSettings();
+}
+
 void MainWindow::writeSettings()
 {
-    QSettings settings("PSG_tag", "MaReader");
+    QSettings settings(myOrganization, myApplicationName);
 
     settings.beginGroup("MainWindow");
     settings.setValue("fontsize", fontSize);
     settings.setValue("fontcolor", fontColor);
     settings.setValue("backgroundcolor", backgroundColor);
 
+    settings.setValue("pos", pos());
+    settings.setValue("size", size());
+
     settings.endGroup();
 }
 
 void MainWindow::readSettings()
 {
-    QSettings settings("PSG_tag", "MaReader");
+    QSettings settings(myOrganization, myApplicationName);
 
     settings.beginGroup("MainWindow");
     fontSize = settings.value("fontsize", 20).toInt();
     fontColor = settings.value("fontcolor", QColor(Qt::black)).value<QColor>();
     backgroundColor = settings.value("backgroundcolor", QColor(Qt::white)).value<QColor>();
+
+    QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
+    QSize size = settings.value("size", QSize(400, 400)).toSize();
+    resize(size);
+    move(pos);
 
     settings.endGroup();
 }
