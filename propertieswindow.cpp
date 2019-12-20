@@ -14,7 +14,7 @@ PropertiesWindow::~PropertiesWindow()
     delete ui;
 }
 
-bool PropertiesWindow::setValues(int fontSize, QColor fontColor, QColor backgroundColor)
+bool PropertiesWindow::setValues(int fontSize, QColor fontColor, QColor backgroundColor, QFont fnt)
 {
     ui->spinBox->setValue(fontSize);
 //!!! Вынести
@@ -25,15 +25,17 @@ bool PropertiesWindow::setValues(int fontSize, QColor fontColor, QColor backgrou
     qp = ui->pushButton_2->palette();
     qp.setColor(QPalette::ButtonText, backgroundColor);
     ui->pushButton_2->setPalette(qp);
+    ui->fontComboBox->setCurrentFont(fnt);
 
     return true;
 }
 
-bool PropertiesWindow::getValues(int *fontSize, QColor *fontColor, QColor *backgroundColor)
+bool PropertiesWindow::getValues(int *fontSize, QColor *fontColor, QColor *backgroundColor, QFont* fnt)
 {
     *fontSize = ui->spinBox->value();
     *fontColor = ui->pushButton->palette().color(QPalette::ButtonText);
     *backgroundColor = ui->pushButton_2->palette().color(QPalette::ButtonText);
+    *fnt = ui->fontComboBox->currentFont();
     return true;
 }
 

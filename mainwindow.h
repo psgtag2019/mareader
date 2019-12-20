@@ -20,9 +20,10 @@ public:
     ~MainWindow();
 
     void init(QApplication* a);
-
+    void readFB(QString fbname);
     QString myOrganization;
     QString myApplicationName;
+
 
 private slots:
     void on_aExit_triggered();
@@ -42,6 +43,8 @@ private:
     int fontSize = 20;
     QColor fontColor;
     QColor backgroundColor;
+    QFont fnt;
+    QString fbFileName;
 
     void writeSettings();
     void readSettings();

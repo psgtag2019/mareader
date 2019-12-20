@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     a.setApplicationName("MaReader");
     MainWindow w;
     w.init(&a);
+
     w.show();
 
     return a.exec();

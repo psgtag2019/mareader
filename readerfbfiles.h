@@ -11,7 +11,7 @@ class ReaderFBFiles : public QObject
     Q_OBJECT
 public:
     explicit ReaderFBFiles(QObject *parent = nullptr);
-    static bool readFBFile(QString fileName, QString *book, QStringList *content, int aFontSize);
+    static bool readFBFile(QString fileName, QString *book, QStringList *content, int FontSize);
     static bool UnZip(QString name, QString path);
 };
 

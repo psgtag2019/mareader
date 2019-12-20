@@ -18,9 +18,9 @@ bool ReaderFBFiles::readFBFile(QString fileName, QString *book, QStringList *con
            return false;
        }
        QString special;
-       QString description; // описание видео
-       //  настройки отображения
-       int fontSize = 20;
+       QString description;
+
+       int fontSize = aFontSize;
 
 
        QXmlStreamReader sr(&f);
@@ -39,8 +39,10 @@ bool ReaderFBFiles::readFBFile(QString fileName, QString *book, QStringList *con
                qDebug() << "QXmlStreamReader::NoToken";
                break;
            case QXmlStreamReader::StartDocument:
-               *book = "<!DOCTYPE HTML><html><body style=\"font-size:%1px; font-family:Sans, Times New Roman;\">";
-               *book = book->arg(fontSize);
+               //*book = "<!DOCTYPE HTML><html><body style=\"font-size:%1px; font-family:Sans, Times New Roman;\">";
+               *book = "<!DOCTYPE HTML><html><body>";
+               //*book = book->arg(fontSize);
+
                break;
            case QXmlStreamReader::EndDocument:
                book->append("</body></html>");

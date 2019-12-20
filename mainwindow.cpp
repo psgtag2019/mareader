@@ -37,39 +37,14 @@ void MainWindow::on_aExit_triggered()
 
 void MainWindow::on_aOpen_triggered()
 {
-   QString text;
-   QStringList content;
 
-   ui->statusbar->clearMessage();
+
+    ui->statusbar->clearMessage();
     QString name = QFileDialog::getOpenFileName(this, "открыть", QDir::currentPath(), "FB2 files (*.fb2);;All files (*.*)" );
-
     if(! name.isEmpty()) {
-        ui->statusbar->showMessage(QFileInfo(name).baseName());
-        //ReaderFBFiles rfb;
-        if(name.endsWith(".zip"))
-        {
-            QString nameUn = QStandardPaths::standardLocations(QStandardPaths::TempLocation).at(0)
-                            + "/mareader/" + QFileInfo(name).baseName();
-
-            if(!ReaderFBFiles::UnZip(name, nameUn)) // распаковка архива
-                qDebug() << "файл " << name << " не открыт";
-            else
-            {
-                // извлекаем содержимое
-                QString fname = QFileInfo(name).completeBaseName();
-                nameUn += "/" + fname;
-                ReaderFBFiles::readFBFile(nameUn, &text, &content, 20);
-                // помещаем содержимое в окно textBrowser
-                ui->textBrowser->setText(text);
-                ui->textBrowser->verticalScrollBar()->setValue(0);
-            }
-        } else if(name.endsWith(".fb2")){
-
-            ReaderFBFiles::readFBFile(name,&text,&content, 20);
-            ui->textBrowser->setText(text);
-            ui->textBrowser->verticalScrollBar()->setValue(0);
-        }
+       readFB(name) ;
     }
+
 }
 
 
@@ -84,11 +59,13 @@ void MainWindow::on_aAbout_triggered()
 
 void MainWindow::on_aTextProperties_triggered()
 {
+
     PropertiesWindow* pw = new PropertiesWindow(this);
-    pw->setValues(fontSize, fontColor, backgroundColor);
+    fnt = ui->textBrowser->currentFont();
+    pw->setValues(fontSize, fontColor, backgroundColor, fnt);
     pw->setModal(true);
     if (pw->exec() == QDialog::Accepted){
-        pw->getValues(&fontSize, &fontColor, &backgroundColor);
+        pw->getValues(&fontSize, &fontColor, &backgroundColor, &fnt);
     }
     delete pw;
     setSettings();
@@ -99,8 +76,49 @@ void MainWindow::init(QApplication* a)
 {
     myOrganization = a->organizationName();
     myApplicationName = a->applicationName();
+    fbFileName = a->arguments().size()>1 ? a->arguments().at(1) : "";
     readSettings();
     setSettings();
+    if (!fbFileName.isEmpty()) {
+        readFB(fbFileName);
+    }
+}
+
+void MainWindow::readFB(QString fbname)
+{
+    QString text;
+    QStringList content;
+
+    ui->statusbar->clearMessage();
+
+     if(! fbname.isEmpty()) {
+         ui->statusbar->showMessage(QFileInfo(fbname).baseName());
+         //ReaderFBFiles rfb;
+         fbFileName = fbname;
+         if(fbname.endsWith(".zip"))
+         {
+             QString nameUn = QStandardPaths::standardLocations(QStandardPaths::TempLocation).at(0)
+                             + "/mareader/" + QFileInfo(fbname).baseName();
+
+             if(!ReaderFBFiles::UnZip(fbname, nameUn)) // распаковка архива
+                 qDebug() << "файл " << fbname << " не открыт";
+             else
+             {
+                 // извлекаем содержимое
+                 QString fname = QFileInfo(fbname).completeBaseName();
+                 nameUn += "/" + fname;
+                 ReaderFBFiles::readFBFile(nameUn, &text, &content, fontSize);
+                 // помещаем содержимое в окно textBrowser
+                 ui->textBrowser->setText(text);
+                 ui->textBrowser->verticalScrollBar()->setValue(0);
+             }
+         } else if(fbname.endsWith(".fb2")){
+
+             ReaderFBFiles::readFBFile(fbname,&text,&content, fontSize);
+             ui->textBrowser->setText(text);
+             ui->textBrowser->verticalScrollBar()->setValue(0);
+         }
+     }
 }
 
 void MainWindow::writeSettings()
@@ -109,13 +127,16 @@ void MainWindow::writeSettings()
 
     settings.beginGroup("MainWindow");
     settings.setValue("fontsize", fontSize);
+    settings.setValue("font", fnt);
     settings.setValue("fontcolor", fontColor);
     settings.setValue("backgroundcolor", backgroundColor);
+    settings.setValue("fbName", fbFileName);
 
     settings.setValue("pos", pos());
     settings.setValue("size", size());
 
     settings.endGroup();
+
 }
 
 void MainWindow::readSettings()
@@ -123,22 +144,32 @@ void MainWindow::readSettings()
     QSettings settings(myOrganization, myApplicationName);
 
     settings.beginGroup("MainWindow");
+    fnt = settings.value("font", ui->textBrowser->currentFont()).value<QFont>();
     fontSize = settings.value("fontsize", 20).toInt();
     fontColor = settings.value("fontcolor", QColor(Qt::black)).value<QColor>();
     backgroundColor = settings.value("backgroundcolor", QColor(Qt::white)).value<QColor>();
 
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
     QSize size = settings.value("size", QSize(400, 400)).toSize();
-    resize(size);
-    move(pos);
+    if (fbFileName.isEmpty()) {
+        fbFileName = settings.value("fbName","").toString();
+    }
 
     settings.endGroup();
+    resize(size);
+
+    move(pos);
+
+
 }
 
 void MainWindow::setSettings()
 {
-    ui->textBrowser->setFontPointSize(fontSize);
-    QString s = "QTextBrowser { background-color: " + backgroundColor.name() +
-                "; color: "+ fontColor.name() + ";}";
+    ui->textBrowser->setFontPointSize(40);//fontSize);
+    QString s;
+    QTextStream(&s) << "QTextBrowser { background-color: " << backgroundColor.name() << "; color: "
+                    << fontColor.name() << "; font-size: " << fontSize << "px; font-family:" << fnt.family() << ";}";
     ui->textBrowser->setStyleSheet(s);
+    //ui->textBrowser->setCurrentFont(fnt);
+    ui->statusbar->showMessage(fnt.family());
 }
