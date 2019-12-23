@@ -2,6 +2,7 @@
 #define PROPERTIESWINDOW_H
 
 #include <QDialog>
+#include <QColorDialog>
 
 namespace Ui {
 class PropertiesWindow;
@@ -21,6 +22,8 @@ private slots:
     void on_pushButton_clicked();
 
     void on_pushButton_2_clicked();
+
+    void setButtonColor(QPushButton* btn, QColor color);
 
 private:
     Ui::PropertiesWindow *ui;

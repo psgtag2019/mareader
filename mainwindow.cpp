@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <QXmlStreamReader>
 #include <QScrollBar>
+#include <QStandardPaths>
+#include <QSqlQuery>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -18,9 +20,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     ui->textBrowser->clear();
-
-    //ui->textBrowser->setTextBackgroundColor(Qt::yellow);
-    //ui->textBrowser->setTextColor(0xfffff);
 }
 
 MainWindow::~MainWindow()
@@ -31,20 +30,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_aExit_triggered()
 {
+    if(db.isOpen()){
+        db.close();
+    }
+
     writeSettings();
     QApplication::quit();
 }
 
 void MainWindow::on_aOpen_triggered()
 {
-
-
     ui->statusbar->clearMessage();
     QString name = QFileDialog::getOpenFileName(this, "открыть", QDir::currentPath(), "FB2 files (*.fb2);;All files (*.*)" );
     if(! name.isEmpty()) {
        readFB(name) ;
     }
-
 }
 
 
@@ -59,7 +59,6 @@ void MainWindow::on_aAbout_triggered()
 
 void MainWindow::on_aTextProperties_triggered()
 {
-
     PropertiesWindow* pw = new PropertiesWindow(this);
     fnt = ui->textBrowser->currentFont();
     pw->setValues(fontSize, fontColor, backgroundColor, fnt);
@@ -79,6 +78,22 @@ void MainWindow::init(QApplication* a)
     fbFileName = a->arguments().size()>1 ? a->arguments().at(1) : "";
     readSettings();
     setSettings();
+    QString fn  = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    QDir dir;
+    if (!dir.exists(fn)){
+        dir.mkpath(fn);
+    }
+    fn += "/mareader.sqlite";
+    qDebug() << "БД " << fn;
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(fn);
+    db.open();
+    if(!QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).exists("mareader.sqlite")){
+        // Создадим базу для последних открытых книг
+        QSqlQuery query;
+        query.exec("create table recent ""(id integer primary key, ""filename varchar(250), ""name varchar(250))");
+    }
+
     if (!fbFileName.isEmpty()) {
         readFB(fbFileName);
     }
@@ -91,34 +106,34 @@ void MainWindow::readFB(QString fbname)
 
     ui->statusbar->clearMessage();
 
-     if(! fbname.isEmpty()) {
-         ui->statusbar->showMessage(QFileInfo(fbname).baseName());
-         //ReaderFBFiles rfb;
-         fbFileName = fbname;
-         if(fbname.endsWith(".zip"))
-         {
-             QString nameUn = QStandardPaths::standardLocations(QStandardPaths::TempLocation).at(0)
-                             + "/mareader/" + QFileInfo(fbname).baseName();
+    if(! fbname.isEmpty()) {
+        ui->statusbar->showMessage(QFileInfo(fbname).baseName());
+        //ReaderFBFiles rfb;
+        fbFileName = fbname;
+        if(fbname.endsWith(".zip"))
+        {
+            QString nameUn = QStandardPaths::standardLocations(QStandardPaths::TempLocation).at(0)
+                    + "/mareader/" + QFileInfo(fbname).baseName();
 
-             if(!ReaderFBFiles::UnZip(fbname, nameUn)) // распаковка архива
-                 qDebug() << "файл " << fbname << " не открыт";
-             else
-             {
-                 // извлекаем содержимое
-                 QString fname = QFileInfo(fbname).completeBaseName();
-                 nameUn += "/" + fname;
-                 ReaderFBFiles::readFBFile(nameUn, &text, &content, fontSize);
-                 // помещаем содержимое в окно textBrowser
-                 ui->textBrowser->setText(text);
-                 ui->textBrowser->verticalScrollBar()->setValue(0);
-             }
-         } else if(fbname.endsWith(".fb2")){
+            if(!ReaderFBFiles::UnZip(fbname, nameUn)) // распаковка архива
+                qDebug() << "файл " << fbname << " не открыт";
+            else
+            {
+                // извлекаем содержимое
+                QString fname = QFileInfo(fbname).completeBaseName();
+                nameUn += "/" + fname;
+                ReaderFBFiles::readFBFile(nameUn, &text, &content, fontSize);
+                // помещаем содержимое в окно textBrowser
+                ui->textBrowser->setText(text);
+                ui->textBrowser->verticalScrollBar()->setValue(0);
+            }
+        } else if(fbname.endsWith(".fb2")){
 
-             ReaderFBFiles::readFBFile(fbname,&text,&content, fontSize);
-             ui->textBrowser->setText(text);
-             ui->textBrowser->verticalScrollBar()->setValue(0);
-         }
-     }
+            ReaderFBFiles::readFBFile(fbname,&text,&content, fontSize);
+            ui->textBrowser->setText(text);
+            ui->textBrowser->verticalScrollBar()->setValue(0);
+        }
+    }
 }
 
 void MainWindow::writeSettings()
@@ -136,7 +151,6 @@ void MainWindow::writeSettings()
     settings.setValue("size", size());
 
     settings.endGroup();
-
 }
 
 void MainWindow::readSettings()
@@ -159,8 +173,6 @@ void MainWindow::readSettings()
     resize(size);
 
     move(pos);
-
-
 }
 
 void MainWindow::setSettings()
@@ -170,6 +182,4 @@ void MainWindow::setSettings()
     QTextStream(&s) << "QTextBrowser { background-color: " << backgroundColor.name() << "; color: "
                     << fontColor.name() << "; font-size: " << fontSize << "px; font-family:" << fnt.family() << ";}";
     ui->textBrowser->setStyleSheet(s);
-    //ui->textBrowser->setCurrentFont(fnt);
-    ui->statusbar->showMessage(fnt.family());
 }

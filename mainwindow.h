@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <QtGui/private/qzipwriter_p.h>
 #include <QtGui/private/qzipreader_p.h>
+#include <QtSql/QSqlDatabase>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -45,6 +46,7 @@ private:
     QColor backgroundColor;
     QFont fnt;
     QString fbFileName;
+    QSqlDatabase db;
 
     void writeSettings();
     void readSettings();

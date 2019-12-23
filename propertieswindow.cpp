@@ -1,6 +1,6 @@
 #include "propertieswindow.h"
 #include "ui_propertieswindow.h"
-#include <QColorDialog>
+
 
 PropertiesWindow::PropertiesWindow(QWidget *parent) :
     QDialog(parent),
@@ -17,14 +17,8 @@ PropertiesWindow::~PropertiesWindow()
 bool PropertiesWindow::setValues(int fontSize, QColor fontColor, QColor backgroundColor, QFont fnt)
 {
     ui->spinBox->setValue(fontSize);
-//!!! Вынести
-    QPalette qp = ui->pushButton->palette();
-    qp.setColor(QPalette::ButtonText, fontColor);
-    ui->pushButton->setPalette(qp);
-//!!! Вынести
-    qp = ui->pushButton_2->palette();
-    qp.setColor(QPalette::ButtonText, backgroundColor);
-    ui->pushButton_2->setPalette(qp);
+    setButtonColor(ui->pushButton, fontColor);
+    setButtonColor(ui->pushButton_2, backgroundColor);
     ui->fontComboBox->setCurrentFont(fnt);
 
     return true;
@@ -44,13 +38,8 @@ void PropertiesWindow::on_pushButton_clicked()
 {
     QColor color = QColorDialog::getColor(ui->pushButton->palette().color(QPalette::ButtonText));
     if (color.isValid() ) {
-
-     //!!! Вынести
-     QPalette qp = ui->pushButton->palette();
-     qp.setColor(QPalette::ButtonText, color);
-     ui->pushButton->setPalette(qp);
-
-     ui->pushButton->show();
+        setButtonColor(ui->pushButton, color);
+        ui->pushButton->show();
     }
 }
 
@@ -58,12 +47,14 @@ void PropertiesWindow::on_pushButton_2_clicked()
 {
     QColor color = QColorDialog::getColor(ui->pushButton_2->palette().color(QPalette::ButtonText));
     if (color.isValid() ) {
-
-     //!!! Вынести
-     QPalette qp = ui->pushButton_2->palette();
-     qp.setColor(QPalette::ButtonText, color);
-     ui->pushButton_2->setPalette(qp);
-
-     ui->pushButton_2->show();
+        setButtonColor(ui->pushButton_2, color);
+        ui->pushButton_2->show();
     }
+}
+
+void PropertiesWindow::setButtonColor(QPushButton *btn, QColor color)
+{
+    QPalette qp = btn->palette();
+    qp.setColor(QPalette::ButtonText, color);
+    btn->setPalette(qp);
 }
