@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QStandardPaths>
 #include <QSqlQuery>
+#include <QSqlRecord>
 #include <QSqlError>
 
 #include "mainwindow.h"
@@ -74,12 +75,20 @@ void MainWindow::on_aTextProperties_triggered()
 
 void MainWindow::insertNewRecentBook(QSqlDatabase *aDB, QString *aFN, QString *aN)
 {
+
     QSqlQuery query(*aDB);
-    query.prepare("INSERT INTO recent (filename, name) VALUES(:filename, :name);");
-    query.bindValue(":filename", *aFN);
-    query.bindValue("name", *aN);
-    if (!query.exec()) {
-        qDebug() << "Unable to do insert operation";
+    query.prepare("SELECT COUNT(*) AS cnt FROM recent");
+    query.exec();
+
+    int cnt = query.record().value("cnt").Int;
+    qDebug() << "CNT= " <<cnt;
+    if (cnt < 20) {
+        query.prepare("INSERT INTO recent (filename, name) VALUES(:filename, :name);");
+        query.bindValue(":filename", *aFN);
+        query.bindValue("name", *aN);
+        if (!query.exec()) {
+            qDebug() << "Unable to do insert operation";
+        }
     }
 }
 
