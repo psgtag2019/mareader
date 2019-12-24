@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QStandardPaths>
 #include <QSqlQuery>
+#include <QSqlError>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -71,6 +72,17 @@ void MainWindow::on_aTextProperties_triggered()
     ui->textBrowser->show();
 }
 
+void MainWindow::insertNewRecentBook(QSqlDatabase *aDB, QString *aFN, QString *aN)
+{
+    QSqlQuery query(*aDB);
+    query.prepare("INSERT INTO recent (filename, name) VALUES(:filename, :name);");
+    query.bindValue(":filename", *aFN);
+    query.bindValue("name", *aN);
+    if (!query.exec()) {
+        qDebug() << "Unable to do insert operation";
+    }
+}
+
 void MainWindow::init(QApplication* a)
 {
     myOrganization = a->organizationName();
@@ -87,11 +99,17 @@ void MainWindow::init(QApplication* a)
     qDebug() << "БД " << fn;
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(fn);
-    db.open();
-    if(!QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).exists("mareader.sqlite")){
+    if (!db.open()) {
+        qDebug() << "Database is not opened1!";
+    }
+//    if(!QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).exists("mareader.sqlite")){
+    QFileInfo qfi(fn);
+    if (qfi.size() == 0){
         // Создадим базу для последних открытых книг
-        QSqlQuery query;
-        query.exec("create table recent ""(id integer primary key, ""filename varchar(250), ""name varchar(250))");
+        QSqlQuery query(db);
+        if( !query.exec("CREATE TABLE recent( id integer primary key autoincrement, filename VARCHAR( 250 ), name VARCHAR(250))")) {
+                qDebug() << db.lastError().text();
+            }
     }
 
     if (!fbFileName.isEmpty()) {
@@ -123,6 +141,12 @@ void MainWindow::readFB(QString fbname)
                 QString fname = QFileInfo(fbname).completeBaseName();
                 nameUn += "/" + fname;
                 ReaderFBFiles::readFBFile(nameUn, &text, &content, fontSize);
+                if (db.isOpen()) {
+                    QString fn = "";
+                    insertNewRecentBook(&db, &nameUn, &fn);
+                }
+
+
                 // помещаем содержимое в окно textBrowser
                 ui->textBrowser->setText(text);
                 ui->textBrowser->verticalScrollBar()->setValue(0);
@@ -130,6 +154,10 @@ void MainWindow::readFB(QString fbname)
         } else if(fbname.endsWith(".fb2")){
 
             ReaderFBFiles::readFBFile(fbname,&text,&content, fontSize);
+            if (db.isOpen()) {
+                QString fn = "";
+                insertNewRecentBook(&db, &fbname, &fn);
+            }
             ui->textBrowser->setText(text);
             ui->textBrowser->verticalScrollBar()->setValue(0);
         }

@@ -11,6 +11,7 @@ ReaderFBFiles::ReaderFBFiles(QObject *parent) : QObject(parent)
 
 bool ReaderFBFiles::readFBFile(QString fileName, QString *book, QStringList *content, int aFontSize)
 {
+    int i = 0;
     QFile f(fileName);
        if (!f.open(QIODevice::ReadOnly | QIODevice::Text))
        {
@@ -363,7 +364,9 @@ bool ReaderFBFiles::readFBFile(QString fileName, QString *book, QStringList *con
                if( thisToken.contains("title") ) // формируем содержание
                {
                    content->back() += " " + sr.text().toString();//content->back()=="" ? "" : " " +
-                   //  qDebug() << "title" << sr.text().toString();
+                   if (i++<2){
+                        qDebug() << "title" << sr.text().toString();
+                   }
                }
 
                if(special == "notes" && !thisToken.contains("title") )  // добавление текста примечания

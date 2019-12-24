@@ -34,7 +34,7 @@ private slots:
     void on_aAbout_triggered();
 
     void on_aTextProperties_triggered();
-
+    void insertNewRecentBook(QSqlDatabase* aDB, QString* aFN, QString* aN);
 
 
 
